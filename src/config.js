@@ -1,5 +1,14 @@
+// Map NODE_ENV to .env file suffix
+const envFileMap = {
+  development: 'dev',
+  test: 'test',
+  production: 'prod'
+};
+
+const envSuffix = envFileMap[process.env.NODE_ENV] || 'dev';
+
 require('dotenv').config({
-  path: `.env.${process.env.NODE_ENV || 'dev'}`
+  path: `.env.${envSuffix}`
 });
 
 const config = {
