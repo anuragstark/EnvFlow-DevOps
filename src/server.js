@@ -1,7 +1,7 @@
 const app = require('./app');
 const config = require('./config');
 
-const server = app.listen(config.port, () => {
+const server = app.listen(config.port, '0.0.0.0', () => {
     console.log(`
 ╔═══════════════════════════════════════════════════════════╗
 ║  ${config.appName.padEnd(55)}  ║
@@ -13,7 +13,7 @@ const server = app.listen(config.port, () => {
 ║  Database:    ${config.dbUrl.padEnd(44)}  ║
 ╚═══════════════════════════════════════════════════════════╝
   `);
-    console.log(`Server is running on http://localhost:${config.port}`);
+    console.log(`Server is running on http://0.0.0.0:${config.port}`);
     console.log(`Health check: http://localhost:${config.port}/health`);
     console.log(`Info endpoint: http://localhost:${config.port}/info\n`);
 });
