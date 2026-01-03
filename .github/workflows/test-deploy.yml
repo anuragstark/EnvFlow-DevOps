@@ -1,6 +1,9 @@
 name: Test Environment Deployment
 
 on:
+  push:
+    branches:
+      - test
   pull_request:
     branches:
       - test
