@@ -1,8 +1,13 @@
+# Anurag Stark - [LinkedIn](https://www.linkedin.com/in/anuragstark/)
+
+## 🔗 Repository
+[https://github.com/anuragstark/EnvFlow-DevOps.git](https://github.com/anuragstark/EnvFlow-DevOps.git)
+
 # DevOps Project - Multi-Environment Deployment
 
 A complete DevOps workflow demonstration with Node.js application, Docker containerization, and automated CI/CD pipelines for Dev, Test, and Production environments using a single cost-effective AWS EC2 instance.
 
-## 📋 Project Overview
+## Project Overview
 
 This project demonstrates a production-ready DevOps setup optimized for cost efficiency:
 - **Environment Separation**: Dev (3001), Test (3002), and Production (3000) on single host
@@ -12,7 +17,7 @@ This project demonstrates a production-ready DevOps setup optimized for cost eff
 - **Testing**: Automated unit tests and smoke tests
 - **Security**: Security audits and best practices
 
-## 🏗️ Architecture
+## Architecture
 
 ```
 ┌───────────────────────────────────────────┐
@@ -58,7 +63,7 @@ devops-project/
 └── package.json        # Node.js dependencies
 ```
 
-## 🚀 Quick Start
+## Quick Start
 
 ### Prerequisites
 
@@ -153,7 +158,7 @@ docker run -d -p 3002:3002 -e NODE_ENV=test --name devops-test devops-app:test
 - **Log Level**: error
 - **Database**: Production MongoDB
 
-## 🔄 CI/CD Pipeline
+##  CI/CD Pipeline
 
 ### Branching Strategy
 
@@ -191,7 +196,7 @@ main (production)
   3. Deploy to EC2 (Port 3000)
   4. Production validation
 
-## 🔐 GitHub Secrets Configuration
+##  GitHub Secrets Configuration
 
 Configure these secrets in your GitHub repository (Settings → Secrets and variables → Actions):
 
@@ -203,7 +208,7 @@ Configure these secrets in your GitHub repository (Settings → Secrets and vari
 | `AWS_EC2_SSH_KEY` | Private SSH key for EC2 access |
 | `AWS_EC2_USER` | EC2 username (e.g., `ec2-user` or `ubuntu`) |
 
-## ☁️ AWS EC2 Setup (Cheapest Option)
+##  AWS EC2 Setup (Cheapest Option)
 
 ### 1. Launch Single EC2 Instance
 - **OS**: Ubuntu Server 22.04 LTS (recommended)
@@ -217,7 +222,7 @@ Allow inbound traffic on:
 - **Dev App**: Port 3001 (Anywhere)
 - **Test App**: Port 3002 (Anywhere)
 
-## 📊 API Endpoints
+##  API Endpoints
 
 | Endpoint | Description |
 |----------|-------------|
@@ -232,10 +237,9 @@ Check all environments on the single host:
 - **Dev**: `http://<EC2-IP>:3001/info`
 - **Test**: `http://<EC2-IP>:3002/info`
 
-## 📝 License
+##  License
 
 ISC
 
 ## 👤 Author
-
-Your Name - DevOps Project Assignment
+Anurag Stark - [LinkedIn](https://www.linkedin.com/in/anuragstark/)
