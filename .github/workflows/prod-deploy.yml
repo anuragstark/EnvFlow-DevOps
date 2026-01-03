@@ -1,0 +1,129 @@
+name: Production Deployment
+
+on:
+  push:
+    branches:
+      - main
+  release:
+    types:
+      - created
+
+jobs:
+  test-build-deploy:
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Run full test suite
+        run: npm test
+
+      - name: Run security audit
+        run: npm audit --audit-level=high
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Login to Docker Hub
+        uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.DOCKER_USERNAME }}
+          password: ${{ secrets.DOCKER_PASSWORD }}
+
+      - name: Build and push Docker image
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          push: true
+          tags: |
+            ${{ secrets.DOCKER_USERNAME }}/devops-app:prod
+            ${{ secrets.DOCKER_USERNAME }}/devops-app:prod-${{ github.sha }}
+            ${{ secrets.DOCKER_USERNAME }}/devops-app:latest
+          cache-from: type=registry,ref=${{ secrets.DOCKER_USERNAME }}/devops-app:prod
+          cache-to: type=inline
+
+      - name: Deploy to PROD EC2
+        uses: appleboy/ssh-action@v1.0.0
+        with:
+          host: ${{ secrets.AWS_EC2_HOST }}
+          username: ${{ secrets.AWS_EC2_USER }}
+          key: ${{ secrets.AWS_EC2_SSH_KEY }}
+          script: |
+            # Stop and remove existing container
+            docker stop devops-app-prod || true
+            docker rm devops-app-prod || true
+            
+            # Pull latest image
+            docker pull ${{ secrets.DOCKER_USERNAME }}/devops-app:prod
+            
+            # Run new container with production environment
+            docker run -d \
+              --name devops-app-prod \
+              --restart unless-stopped \
+              -p 3000:3000 \
+              -e NODE_ENV=production \
+              ${{ secrets.DOCKER_USERNAME }}/devops-app:prod
+            
+            # Wait for container to start
+            sleep 5
+            
+            # Check if container is running
+            docker ps | grep devops-app-prod
+
+      - name: Verify deployment
+        uses: appleboy/ssh-action@v1.0.0
+        with:
+          host: ${{ secrets.AWS_EC2_HOST }}
+          username: ${{ secrets.AWS_EC2_USER }}
+          key: ${{ secrets.AWS_EC2_SSH_KEY }}
+          script: |
+            # Health check
+            curl -f http://localhost:3000/health || exit 1
+            echo " PROD deployment successful!"
+
+      - name: Run production smoke tests
+        uses: appleboy/ssh-action@v1.0.0
+        with:
+          host: ${{ secrets.AWS_EC2_HOST }}
+          username: ${{ secrets.AWS_EC2_USER }}
+          key: ${{ secrets.AWS_EC2_SSH_KEY }}
+          script: |
+            # Test all critical endpoints
+            curl -f http://localhost:3000/ || exit 1
+            curl -f http://localhost:3000/health || exit 1
+            curl -f http://localhost:3000/info || exit 1
+            echo " All production smoke tests passed!"
+
+      - name: Deployment notification
+        if: always()
+        run: |
+          if [ ${{ job.status }} == 'success' ]; then
+            echo "✅ PRODUCTION deployment completed successfully"
+            echo "🔗 Access at: http://${{ secrets.AWS_EC2_HOST }}:3000"
+            echo " Docker image: ${{ secrets.DOCKER_USERNAME }}/devops-app:prod"
+            echo "  Git SHA: ${{ github.sha }}"
+          else
+            echo " PRODUCTION deployment failed"
+            exit 1
+          fi
+
+      - name: Create deployment summary
+        if: success()
+        run: |
+          echo "## 🚀 Production Deployment Summary" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "- **Environment:** Production" >> $GITHUB_STEP_SUMMARY
+          echo "- **Git SHA:** \`${{ github.sha }}\`" >> $GITHUB_STEP_SUMMARY
+          echo "- **Docker Image:** \`${{ secrets.DOCKER_USERNAME }}/devops-app:prod\`" >> $GITHUB_STEP_SUMMARY
+          echo "- **Deployed At:** $(date -u +'%Y-%m-%d %H:%M:%S UTC')" >> $GITHUB_STEP_SUMMARY
+          echo "- **Status:**  Success" >> $GITHUB_STEP_SUMMARY
